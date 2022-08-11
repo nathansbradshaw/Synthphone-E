@@ -12,7 +12,15 @@ const byte COLS = 3; // columns
 
 const int analogInPin = A1; // Analog input pin that the potentiometer is attached to
 
-int sensorValue = 0; // value read from the pot
+//int sensorValue = 0; // value read from the pot
+#define encoderPinA 2
+#define encoderPinB 3
+//#define encoderBtn 4
+int encoderPos = 0;
+int valRotary,lastValRotary;
+int maxRotations = 12;
+
+#define AUDIOPIN 13
 
 // define the symbols on the buttons of the keypads
 #define R1 4  // 1
@@ -31,12 +39,14 @@ int sensorValue = 0; // value read from the pot
 #define E 1336
 #define FS 1477
 
+//
+int notes[12][2] = {{}}
+
 const bool MODE_STEPS {1,1,0,1,1,1,0}
 const char* MODE_NAMES[] = {"Ionian", "Dorian", "Phrygian","Lydian", "Mixolydian", "Aeolion","Locrian"};
 enum instrumentMode {PLAY, KEY, MODE, OCTAVE};
 instrumentMode mode = PLAY;
 
-#define AUDIOPIN 13
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
@@ -126,6 +136,11 @@ void setup()
   tone1.begin(AUDIOPIN);
   tone2.begin(AUDIOPIN);
 
+  pinMode(encoder0PinA, INPUT_PULLUP);
+  pinMode(encoder0PinB, INPUT_PULLUP);
+  //pinMode(encoder0Btn, INPUT_PULLUP);
+  attachInterrupt(0, doEncoder, CHANGE);
+
   customKeypad.begin();
 }
 
@@ -139,38 +154,56 @@ void loop()
   // put your main code here, to run repeatedly:
   customKeypad.tick();
 
-  sensorValue = analogRead(analogInPin);
+  //sensorValue = analogRead(analogInPin);
   display.drawBitmap(128, 32, epd_bitmap_8008INC, 128, 32, 1);
   display.display();
   Serial.print("sensor = ");
-  Serial.print(sensorValue);
+  Serial.print(valRotary);
   Serial.println();
 
+  Serial.print(valRotary);
 
-  // if we are in play mode, 
-  // play notes in the current mode and key, 
-  // update the screen to say what note is paying
-  // read the encoder for volume
-  // update the screen to say the volume
-  
-  // if we are in key mode, 
-  // read the encoder for key index switching
-  // update the screen to say what key we are on
+  //if the rotary is greater than some max # of steps reset to 0
+  if(valRotary > maxRotations)
+    valRotary = 0;
+  else if(valRotary < 0)
+    valRotary = maxRotations;
 
-  // if we are in mode mode (lol),
-  // read the encoder for mode index switching
-  // update the screen to say what mode we are on
+  /* 
+    if we are in play mode, 
+    read the encoder for volume
+    update the screen to say the volume
+    
+    if we are in key mode, 
+    read the encoder for key index switching
+    update the screen to say what key we are on
 
-  // if we are in octave mode,
-  // read the encoder for octave switching
-  // update the screen to say the current key with the octave number next to it
+    if we are in mode mode (lol),
+    read the encoder for mode index switching
+    update the screen to say what mode we are on
 
-  // else play notes in current mode, key, and octave
+    if we are in octave mode,
+    read the encoder for octave switching
+    update the screen to say the current key with the octave number next to it
+
+    else play notes in current mode, key, and octave
+    play notes in the current mode and key, 
+    update the screen to say what note is paying
+  */
 
   switch (mode)
   {
   case PLAY:
-    /* code */
+    //TODO: normalize the rotary value
+    if(valRotary > lastValRotary)
+    {
+      //if we are not at the max vol
+      //if()
+    }else if (valRotary < lastValRotary)
+    {
+      //if we are not at the min vol
+    }
+    
     break;
   case KEY:
     /* code */
@@ -296,31 +329,31 @@ void loop()
       case '*':
         if (e.bit.EVENT == KEY_JUST_PRESSED)
         {
-          PlayTone(AS, D);
+          mode = instrumentMode.KEY;
         }
         else if (e.bit.EVENT == KEY_JUST_RELEASED)
         {
-          StopTone();
+          mode = instrumentMode.PLAY;
         }
         break;
       case '0':
         if (e.bit.EVENT == KEY_JUST_PRESSED)
         {
-          PlayTone(AS, E);
+          mode = instrumentMode.MODE;
         }
         else if (e.bit.EVENT == KEY_JUST_RELEASED)
         {
-          StopTone();
+          mode = instrumentMode.PLAY;
         }
         break;
       case '#':
         if (e.bit.EVENT == KEY_JUST_PRESSED)
         {
-          PlayTone(AS, FS);
+          mode = instrumentMode.OCTAVE;
         }
         else if (e.bit.EVENT == KEY_JUST_RELEASED)
         {
-          StopTone();
+          mode = instrumentMode.PLAY;
         }
         break;
       default:
@@ -341,4 +374,17 @@ void StopTone()
 {
   tone1.stop();
   tone2.stop();
+}
+
+void doEncoder()
+{
+  if (digitalRead(encoder0PinA) == digitalRead(encoder0PinB))
+  {
+	encoder0Pos++;
+  }
+  else
+  {
+	encoder0Pos--;
+  }
+  valRotary = encoder0Pos/2.5;
 }
