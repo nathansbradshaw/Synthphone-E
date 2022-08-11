@@ -31,6 +31,11 @@ int sensorValue = 0; // value read from the pot
 #define E 1336
 #define FS 1477
 
+const bool MODE_STEPS {1,1,0,1,1,1,0}
+const char* MODE_NAMES[] = {"Ionian", "Dorian", "Phrygian","Lydian", "Mixolydian", "Aeolion","Locrian"};
+enum instrumentMode {PLAY, KEY, MODE, OCTAVE};
+instrumentMode mode = PLAY;
+
 #define AUDIOPIN 13
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -40,6 +45,8 @@ int sensorValue = 0; // value read from the pot
 #define SSD1306_NO_SPLAS true
 #define SCREEN_ADDRESS 0x3C
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+#pragma region Logo
 
 // '8008INC', 128x32px
 const unsigned char epd_bitmap_8008INC[] PROGMEM = {
@@ -77,6 +84,8 @@ const unsigned char epd_bitmap_8008INC[] PROGMEM = {
   0xc6, 0xc6, 0x75, 0x4f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe, 0x39, 0xfb, 0xff, 
   0x83, 0x83, 0x21, 0x3f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xc0, 0x07, 0xff
 };
+
+#pragma endregion Logo
 
 char keys[ROWS][COLS] = {
   {'1', '2', '3'},
@@ -122,7 +131,8 @@ void setup()
 
 void loop()
 {
-    display.clearDisplay();
+  
+  display.clearDisplay();
   display.invertDisplay(true);
   display.drawBitmap(0, 0, epd_bitmap_8008INC, 128, 32, 1);
   display.display();
@@ -135,6 +145,48 @@ void loop()
   Serial.print("sensor = ");
   Serial.print(sensorValue);
   Serial.println();
+
+
+  // if we are in play mode, 
+  // play notes in the current mode and key, 
+  // update the screen to say what note is paying
+  // read the encoder for volume
+  // update the screen to say the volume
+  
+  // if we are in key mode, 
+  // read the encoder for key index switching
+  // update the screen to say what key we are on
+
+  // if we are in mode mode (lol),
+  // read the encoder for mode index switching
+  // update the screen to say what mode we are on
+
+  // if we are in octave mode,
+  // read the encoder for octave switching
+  // update the screen to say the current key with the octave number next to it
+
+  // else play notes in current mode, key, and octave
+
+  switch (mode)
+  {
+  case PLAY:
+    /* code */
+    break;
+  case KEY:
+    /* code */
+    break;
+  case MODE:
+    /* code */
+    break;
+  case OCTAVE:
+    /* code */
+    break;
+  
+  default:
+    break;
+  }
+
+
 
   while (customKeypad.available())
   {
