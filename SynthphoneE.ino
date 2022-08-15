@@ -40,7 +40,9 @@ int maxRotations = 12;
 #define FS 1477
 
 //
-int notes[12][2] = {{}}
+int notes[12] =        {261.6256, 277.1826, 293.6648, 311.1270, 329.6276, 349.2282, 369.9944, 391.9954, 415.3047, 440.0000, 466.1638, 493.8833 };
+char[] noteNames[12] = {"C",      "C#",     "D",      "D#",     "E",      "F",      "F#",     "G",      "G#",     "A",      "A#",     "B"      };
+int octave = 4;
 
 const bool MODE_STEPS {1,1,0,1,1,1,0}
 const char* MODE_NAMES[] = {"Ionian", "Dorian", "Phrygian","Lydian", "Mixolydian", "Aeolion","Locrian"};
@@ -169,6 +171,16 @@ void loop()
   else if(valRotary < 0)
     valRotary = maxRotations;
 
+  int step = 0;
+  //TODO: normalize the rotary value
+  if(valRotary > lastValRotary)
+  {
+    step = 1;
+  }
+  else if (valRotary < lastValRotary)
+  {
+    step = -1;
+  }
   /* 
     if we are in play mode, 
     read the encoder for volume
@@ -194,15 +206,6 @@ void loop()
   switch (mode)
   {
   case PLAY:
-    //TODO: normalize the rotary value
-    if(valRotary > lastValRotary)
-    {
-      //if we are not at the max vol
-      //if()
-    }else if (valRotary < lastValRotary)
-    {
-      //if we are not at the min vol
-    }
     
     break;
   case KEY:
