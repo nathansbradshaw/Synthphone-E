@@ -215,7 +215,8 @@ void loop()
     /* code */
     break;
   case OCTAVE:
-    /* code */
+    octave += step;
+    
     break;
   
   default:
