@@ -5,6 +5,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 void PlayTone(int, int);
+void PlayTone(int);
 void StopTone();
 int Selector();
 
@@ -265,6 +266,10 @@ void loop()
     }
   }
 
+  /*
+  starting on the current key, loop through the notes using the current mode instructions to find the notes to play
+  */
+
   while (customKeypad.available())
   {
     keypadEvent e = customKeypad.read();
@@ -277,7 +282,7 @@ void loop()
     case '1':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        //PlayTone(F, D);
+        //PlayTone();
         display.invertDisplay(true);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
@@ -412,6 +417,11 @@ void PlayTone(int note1, int note2)
 {
   tone1.play(note1);
   tone2.play(note2);
+}
+
+void PlayTone(int note1)
+{
+  tone1.play(note1);
 }
 
 void StopTone()
