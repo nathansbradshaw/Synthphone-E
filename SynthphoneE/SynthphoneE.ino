@@ -6,20 +6,18 @@
 #include <Adafruit_SSD1306.h>
 void PlayTone(int, int);
 void StopTone();
+int Selector();
 
 const byte ROWS = 4; // rows
 const byte COLS = 3; // columns
 
-const int analogInPin = A1; // Analog input pin that the potentiometer is attached to
-
-// int sensorValue = 0; // value read from the pot
 #define encoderPinA 2
 #define encoderPinB 3
 //#define encoderBtn 4
 int encoderPos = 0;
 int valRotary = 0;
 int lastValRotary = 0;
-int maxRotations = 12;
+//int maxRotations = 12;
 
 #define AUDIOPIN 13
 
@@ -32,21 +30,26 @@ int maxRotations = 12;
 #define C2 8  // 4
 #define C3 12 // 8
 
-#define F 697
-#define G 770
-#define GS 852
-#define AS 941
-#define D 1209
-#define E 1336
-#define FS 1477
+//#define F 697
+//#define G 770
+//#define GS 852
+//#define AS 941
+//#define D 1209
+//#define E 1336
+//#define FS 1477
 
 //
-int notes[12] = {261.6256, 277.1826, 293.6648, 311.1270, 329.6276, 349.2282, 369.9944, 391.9954, 415.3047, 440.0000, 466.1638, 493.8833};
-char *noteNames[12] = {"C ", "C#", "D ", "D#", "E ", "F ", "F#", "G ", "G#", "A ", "A#", "B "};
-int octave = 4;
+double notes[12] = {261.6256, 277.1826, 293.6648, 311.1270, 329.6276, 349.2282, 369.9944, 391.9954, 415.3047, 440.0000, 466.1638, 493.8833};
+const char *NOTE_NAMES[12] = {"C ", "C#", "D ", "D#", "E ", "F ", "F#", "G ", "G#", "A ", "A#", "B "};
 
 const bool MODE_STEPS[7] = {1, 1, 0, 1, 1, 1, 0};
 const char *MODE_NAMES[7] = {"Ionian", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolion", "Locrian"};
+
+int octave = 4;
+int modeIndex = 0;
+int noteIndex = 0;
+int volume = 5;
+
 enum instrumentMode
 {
   PLAY,
@@ -163,29 +166,9 @@ void loop()
   // sensorValue = analogRead(analogInPin);
   display.drawBitmap(128, 32, epd_bitmap_8008INC, 128, 32, 1);
   display.display();
-  Serial.print("sensor = ");
-  Serial.print(valRotary);
-  Serial.println();
-  lastValRotary = valRotary;
+  
   // if the rotary is greater than some max # of steps reset to 0
-  if (valRotary > maxRotations)
-    valRotary = 0;
-  else if (valRotary < 0)
-    valRotary = maxRotations;
-
-  int step = 0;
-  // TODO: normalize the rotary value
-  if (valRotary > lastValRotary)
-  {
-    step = 1;
-  }
-  else if (valRotary < lastValRotary)
-  {
-    step = -1;
-  }
-  Serial.print("step = ");
-  Serial.print(step);
-  Serial.println(" ");
+  int selectorStatus = Selector();
 
   /*
     if we are in play mode,
@@ -208,25 +191,78 @@ void loop()
     play notes in the current mode and key,
     update the screen to say what note is paying
   */
-
-  switch (mode)
+  int newMenuValue;
+  //if we have a change in the selector make the change
+  //selector = -1,0, or 1
+  if(selectorStatus != 0)
   {
-  case PLAY:
 
-    break;
-  case KEY:
-    /* code */
-    break;
-  case MODE:
-    /* code */
-    break;
-  case OCTAVE:
-    octave += step;
+    switch (mode)
+    {
+    case PLAY:
+      /* change the volume */
+      newMenuValue = volume + selectorStatus;
+      if(newMenuValue > -1 && newMenuValue < 11 )
+      {
+        volume = newMenuValue;
+        Serial.println();
+        Serial.print("Volume: ");
+        Serial.print(volume);
+      }
+      break;
+    case KEY:
+      /* switch betwix thine 12 keys */
+      newMenuValue = noteIndex + selectorStatus;
+      //mode is an index so this one will be 0 based
+      if(newMenuValue > 11)
+      {
+        newMenuValue = 0;
+      }
+      else if(newMenuValue < 0)
+      {
+        newMenuValue = 11;
+      }
+        Serial.println();
+        Serial.print("new KEY: ");
+        Serial.print(NOTE_NAMES[newMenuValue]);
+        Serial.print(" | ");
+        Serial.print(newMenuValue);
+      noteIndex = newMenuValue;
+      break;
+    case MODE:
+      /* switch betwixed thy 7 modes */
+      newMenuValue = modeIndex + selectorStatus;
+      //mode is an index so this one will be 0 based
+      if(newMenuValue > 6)
+      {
+        newMenuValue = 0;
+      }
+      else if(newMenuValue < 0)
+      {
+        newMenuValue = 6;
+      }
+        Serial.println();
+        Serial.print("new Mode: ");
+        Serial.print(MODE_NAMES[newMenuValue]);
+        Serial.print(" | ");
+        Serial.print(newMenuValue);
+      modeIndex = newMenuValue;
+      break;
+    case OCTAVE:
+      /* switch betwix octaves 1-7 */
+      newMenuValue = octave + selectorStatus;
+      if(newMenuValue > 0 && newMenuValue < 8 )
+      {
+        octave = newMenuValue;
+        Serial.println();
+        Serial.print("new Octave: ");
+        Serial.print(octave);
+      }
+      break;
 
-    break;
-
-  default:
-    break;
+    default:
+      break;
+    }
   }
 
   while (customKeypad.available())
@@ -241,7 +277,7 @@ void loop()
     case '1':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        PlayTone(F, D);
+        //PlayTone(F, D);
         display.invertDisplay(true);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
@@ -253,7 +289,7 @@ void loop()
     case '2':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        PlayTone(F, E);
+        //PlayTone(F, E);
         display.clearDisplay();
         display.display();
         display.drawBitmap(0, 0, epd_bitmap_8008INC, 128, 32, 1);
@@ -267,7 +303,7 @@ void loop()
     case '3':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        PlayTone(F, FS);
+        //PlayTone(F, FS);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -277,7 +313,7 @@ void loop()
     case '4':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        PlayTone(G, D);
+        //PlayTone(G, D);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -287,7 +323,7 @@ void loop()
     case '5':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        PlayTone(G, E);
+        //PlayTone(G, E);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -297,7 +333,7 @@ void loop()
     case '6':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        PlayTone(G, FS);
+        //PlayTone(G, FS);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -307,7 +343,7 @@ void loop()
     case '7':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        PlayTone(GS, D);
+        //PlayTone(GS, D);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -317,7 +353,7 @@ void loop()
     case '8':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        PlayTone(GS, E);
+        //PlayTone(GS, E);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -327,7 +363,7 @@ void loop()
     case '9':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        PlayTone(GS, FS);
+        //PlayTone(GS, FS);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -395,4 +431,24 @@ void doEncoder()
     encoderPos--;
   }
   valRotary = encoderPos / 2.5;
+}
+
+// Let us know if we are moving up, down or not at all;
+int Selector()
+{
+  int selectorChange = 0;
+
+  //Serial.println(valRotary);
+  if (valRotary > lastValRotary)
+  {
+    Serial.print("  +1");
+    selectorChange = 1;
+  }
+  else if(valRotary < lastValRotary)  {
+    Serial.print("  -1");
+    selectorChange = -1;
+  }
+  lastValRotary = valRotary;
+  //Serial.println();
+  return selectorChange;
 }
