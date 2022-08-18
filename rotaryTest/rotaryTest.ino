@@ -10,7 +10,8 @@ void setup()
   pinMode(encoder0Btn, INPUT_PULLUP);
   attachInterrupt(0, doEncoder, CHANGE);
 }
-int valRotary, lastValRotary;
+int valRotary = 0;
+int lastValRotary = 0;
 void loop()
 {
   int btn = digitalRead(encoder0Btn);
@@ -19,10 +20,10 @@ void loop()
   Serial.print(valRotary);
   if (valRotary > lastValRotary)
   {
-    Serial.print("  CW");
+    Serial.print("  CW +1");
   }
-  if(valRotary)  {
-    Serial.print("  CCW");
+  if(valRotary < lastValRotary)  {
+    Serial.print("  CCW -1");
   }
   lastValRotary = valRotary;
   Serial.println(" ");
