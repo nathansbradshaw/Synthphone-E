@@ -39,17 +39,20 @@ int lastValRotary = 0;
 //#define E 1336
 //#define FS 1477
 
-//
+
 double notes[12] = {261.6256, 277.1826, 293.6648, 311.1270, 329.6276, 349.2282, 369.9944, 391.9954, 415.3047, 440.0000, 466.1638, 493.8833};
 const char *NOTE_NAMES[12] = {"C ", "C#", "D ", "D#", "E ", "F ", "F#", "G ", "G#", "A ", "A#", "B "};
+double notesMap[9];
 
 const bool MODE_STEPS[7] = {1, 1, 0, 1, 1, 1, 0};
 const char *MODE_NAMES[7] = {"Ionian", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolion", "Locrian"};
 
 int octave = 4;
 int modeIndex = 0;
-int noteIndex = 0;
+int keyIndex = 0;
 int volume = 5;
+
+bool recalculateNotes = true;
 
 enum instrumentMode
 {
@@ -213,7 +216,7 @@ void loop()
       break;
     case KEY:
       /* switch betwix thine 12 keys */
-      newMenuValue = noteIndex + selectorStatus;
+      newMenuValue = keyIndex + selectorStatus;
       //mode is an index so this one will be 0 based
       if(newMenuValue > 11)
       {
@@ -224,11 +227,14 @@ void loop()
         newMenuValue = 11;
       }
         Serial.println();
-        Serial.print("new KEY: ");
-        Serial.print(NOTE_NAMES[newMenuValue]);
-        Serial.print(" | ");
-        Serial.print(newMenuValue);
-      noteIndex = newMenuValue;
+      Serial.print("new KEY: ");
+      Serial.print(NOTE_NAMES[newMenuValue]);
+      Serial.print(" | ");
+      Serial.println(newMenuValue);
+      keyIndex = newMenuValue;
+
+      //notify that we need to rebuild the notes map
+      recalculateNotes = true;
       break;
     case MODE:
       /* switch betwixed thy 7 modes */
@@ -242,12 +248,14 @@ void loop()
       {
         newMenuValue = 6;
       }
-        Serial.println();
-        Serial.print("new Mode: ");
-        Serial.print(MODE_NAMES[newMenuValue]);
-        Serial.print(" | ");
-        Serial.print(newMenuValue);
+      Serial.println();
+      Serial.print("new Mode: ");
+      Serial.print(MODE_NAMES[newMenuValue]);
+      Serial.print(" | ");
+      Serial.println(newMenuValue);
       modeIndex = newMenuValue;
+
+      recalculateNotes = true;
       break;
     case OCTAVE:
       /* switch betwix octaves 1-7 */
@@ -257,7 +265,9 @@ void loop()
         octave = newMenuValue;
         Serial.println();
         Serial.print("new Octave: ");
-        Serial.print(octave);
+        Serial.println(octave);
+
+        recalculateNotes = true;
       }
       break;
 
@@ -266,9 +276,72 @@ void loop()
     }
   }
 
-  /*
-  starting on the current key, loop through the notes using the current mode instructions to find the notes to play
-  */
+  //if we have made changes, lets rebuild our notes map
+  if(recalculateNotes)
+  {
+    //starting on the current key, loop through the notes using the current mode instructions to find the notes to play
+    
+    //starting on the first note of the key
+    int note_i = keyIndex;
+    Serial.println();
+    Serial.print("note index : ");
+    Serial.println(note_i);
+    Serial.print("note name : ");
+    Serial.println(NOTE_NAMES[note_i]);
+
+    //starting in the current mode
+    int mode_i = modeIndex;
+    Serial.print("mode index : ");
+    Serial.println(mode_i);
+    
+
+    //for each of the other notes on the keypad
+    for (int i = 0; i < 9; i++)
+    {
+      Serial.print("index : *");
+      Serial.println(i);
+
+      //don't move if we are on the first one (if you are going to make spaghetti, at least leave a recipe)
+      if(i != 0)
+      {
+        //based on the mode instructions, move a whole step or half step
+        note_i += MODE_STEPS[mode_i] ? 2 : 1;
+
+        //restart the cycle
+        if(note_i > 11)
+        {
+          note_i = note_i - 11;
+        }
+
+      }
+
+      
+      //add the octave modifier (A4 = 440, measure the change)
+      int octaveModifier = ((octave - 4) * 2);
+      Serial.print("octave : *");
+      Serial.println(octaveModifier);
+
+      //set the playable note in the note map
+      //add octave modifier if are not in 4th octave
+      if(octaveModifier != 0)
+        notesMap[i] = notes[note_i] * octaveModifier;
+      else
+        notesMap[i] = notes[note_i];
+
+      Serial.print("hertz : ");
+      Serial.println(notesMap[i]);
+      Serial.print("note : ");
+      Serial.println(NOTE_NAMES[note_i]);
+
+      mode_i++;
+
+      //if we are at the end of the mode loop, go to the start
+      if(mode_i == 6)
+        mode_i = 0;
+    }
+
+    recalculateNotes = false;
+  }
 
   while (customKeypad.available())
   {
@@ -282,23 +355,23 @@ void loop()
     case '1':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        //PlayTone();
-        display.invertDisplay(true);
+        PlayTone(notesMap[0]);
+        //display.invertDisplay(true);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
         StopTone();
-        display.invertDisplay(false);
+        //display.invertDisplay(false);
       }
       break;
     case '2':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        //PlayTone(F, E);
-        display.clearDisplay();
-        display.display();
-        display.drawBitmap(0, 0, epd_bitmap_8008INC, 128, 32, 1);
-        display.display();
+        PlayTone(notesMap[1]);
+        // display.clearDisplay();
+        // display.display();
+        // display.drawBitmap(0, 0, epd_bitmap_8008INC, 128, 32, 1);
+        // display.display();
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -308,7 +381,7 @@ void loop()
     case '3':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        //PlayTone(F, FS);
+        PlayTone(notesMap[2]);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -318,7 +391,7 @@ void loop()
     case '4':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        //PlayTone(G, D);
+        PlayTone(notesMap[3]);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -328,7 +401,7 @@ void loop()
     case '5':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        //PlayTone(G, E);
+        PlayTone(notesMap[4]);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -338,7 +411,7 @@ void loop()
     case '6':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        //PlayTone(G, FS);
+        PlayTone(notesMap[5]);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -348,7 +421,7 @@ void loop()
     case '7':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        //PlayTone(GS, D);
+        PlayTone(notesMap[6]);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -358,7 +431,7 @@ void loop()
     case '8':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        //PlayTone(GS, E);
+        PlayTone(notesMap[7]);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -368,7 +441,7 @@ void loop()
     case '9':
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
-        //PlayTone(GS, FS);
+        PlayTone(notesMap[8]);
       }
       else if (e.bit.EVENT == KEY_JUST_RELEASED)
       {
@@ -419,8 +492,11 @@ void PlayTone(int note1, int note2)
   tone2.play(note2);
 }
 
-void PlayTone(int note1)
+void PlayTone(double note1)
 {
+  Serial.println();
+  Serial.print("Hertz : ");
+  Serial.println(note1);
   tone1.play(note1);
 }
 
