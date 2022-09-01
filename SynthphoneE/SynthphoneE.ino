@@ -309,10 +309,14 @@ void loop()
 
         //restart the cycle
         if(note_i > 11)
-        {
           note_i = note_i - 11;
-        }
+      
+        //increment mode
+        mode_i++;
 
+        //if we are at the end of the mode loop, go to the start
+        if(mode_i > 6)
+          mode_i = 0;
       }
 
       
@@ -323,8 +327,10 @@ void loop()
 
       //set the playable note in the note map
       //add octave modifier if are not in 4th octave
-      if(octaveModifier != 0)
+      if(octaveModifier > 0)
         notesMap[i] = notes[note_i] * octaveModifier;
+      else if(octaveModifier < 0)
+        notesMap[i] = notes[note_i] / octaveModifier;
       else
         notesMap[i] = notes[note_i];
 
@@ -332,12 +338,6 @@ void loop()
       Serial.println(notesMap[i]);
       Serial.print("note : ");
       Serial.println(NOTE_NAMES[note_i]);
-
-      mode_i++;
-
-      //if we are at the end of the mode loop, go to the start
-      if(mode_i == 6)
-        mode_i = 0;
     }
 
     recalculateNotes = false;
@@ -347,9 +347,9 @@ void loop()
   {
     keypadEvent e = customKeypad.read();
     char key = e.bit.KEY;
-    // Serial.print((char)e.bit.KEY);
-    // if(e.bit.EVENT == KEY_JUST_PRESSED) Serial.println(" pressed");
-    // else if(e.bit.EVENT == KEY_JUST_RELEASED) Serial.println(" released");
+    Serial.print((char)e.bit.KEY);
+    if(e.bit.EVENT == KEY_JUST_PRESSED) Serial.println(" pressed");
+    else if(e.bit.EVENT == KEY_JUST_RELEASED) Serial.println(" released");
     switch (key)
     {
     case '1':
