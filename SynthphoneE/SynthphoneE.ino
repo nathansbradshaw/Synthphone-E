@@ -189,6 +189,8 @@ void loop()
 
   // if the button is pressed, run the ringer
   int btn = digitalRead(encoderBtn);
+  // Serial.println("button ");
+  // Serial.println(btn);
   if(btn == 1)
   {
     Ring();
@@ -383,6 +385,7 @@ void loop()
       if (e.bit.EVENT == KEY_JUST_PRESSED)
       {
         PlayTone(notesMap[1]);
+        digitalWrite(6, HIGH);
         // display.clearDisplay();
         // display.display();
         // display.drawBitmap(0, 0, epd_bitmap_8008INC, 128, 32, 1);
@@ -557,11 +560,11 @@ int Selector()
 void Ring()
 {
   ringerDelayTick++;
+  digitalWrite(6, isRingerOn);
 
   if(ringerDelayTick > ringerDelayMax)
   {
     ringerDelayTick = 0;
     isRingerOn = !isRingerOn;
-    digitalWrite(6, isRingerOn);
   }
 }
