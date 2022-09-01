@@ -1,20 +1,29 @@
+/// Synthphone-E by Enoch and Nathan Bradshaw
+///
+///
+///
+///(if you are going to make spaghetti, at least leave a recipe)
+
+
 #include "Adafruit_Keypad.h"
 #include "Tone.h"
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+
 void PlayTone(int, int);
 void PlayTone(int);
 void StopTone();
 int Selector();
+void Ring();
 
 const byte ROWS = 4; // rows
 const byte COLS = 3; // columns
 
 #define encoderPinA 2
 #define encoderPinB 3
-//#define encoderBtn 4
+#define encoderBtn 13
 int encoderPos = 0;
 int valRotary = 0;
 int lastValRotary = 0;
@@ -53,6 +62,10 @@ int keyIndex = 0;
 int volume = 5;
 
 bool recalculateNotes = true;
+
+int ringerDelayTick = 0;
+int ringerDelayMax = 10000;
+bool isRingerOn = false;
 
 enum instrumentMode
 {
@@ -151,7 +164,7 @@ void setup()
 
   pinMode(encoderPinA, INPUT_PULLUP);
   pinMode(encoderPinB, INPUT_PULLUP);
-  // pinMode(encoder0Btn, INPUT_PULLUP);
+  pinMode(encoderBtn, INPUT_PULLUP);
   attachInterrupt(0, doEncoder, CHANGE);
 
   customKeypad.begin();
@@ -173,6 +186,13 @@ void loop()
   
   // if the rotary is greater than some max # of steps reset to 0
   int selectorStatus = Selector();
+
+  // if the button is pressed, run the ringer
+  int btn = digitalRead(encoderBtn);
+  if(btn == 1)
+  {
+    Ring();
+  }
 
   /*
     if we are in play mode,
@@ -298,31 +318,12 @@ void loop()
     //for each of the other notes on the keypad
     for (int i = 0; i < 9; i++)
     {
-      Serial.print("index : *");
+      Serial.print("index : ");
       Serial.println(i);
-
-      //don't move if we are on the first one (if you are going to make spaghetti, at least leave a recipe)
-      if(i != 0)
-      {
-        //based on the mode instructions, move a whole step or half step
-        note_i += MODE_STEPS[mode_i] ? 2 : 1;
-
-        //restart the cycle
-        if(note_i > 11)
-          note_i = note_i - 11;
-      
-        //increment mode
-        mode_i++;
-
-        //if we are at the end of the mode loop, go to the start
-        if(mode_i > 6)
-          mode_i = 0;
-      }
-
       
       //add the octave modifier (A4 = 440, measure the change)
       int octaveModifier = ((octave - 4) * 2);
-      Serial.print("octave : *");
+      Serial.print("octave : ");
       Serial.println(octaveModifier);
 
       //set the playable note in the note map
@@ -333,6 +334,20 @@ void loop()
         notesMap[i] = notes[note_i] / octaveModifier;
       else
         notesMap[i] = notes[note_i];
+
+      //based on the mode instructions, move a whole step or half step
+      note_i += MODE_STEPS[mode_i] ? 2 : 1;
+
+      //restart the cycle
+      if(note_i > 11)
+        note_i = note_i - 11;
+    
+      //increment mode
+      mode_i++;
+
+      //if we are at the end of the mode loop, go to the start
+      if(mode_i > 6)
+        mode_i = 0;
 
       Serial.print("hertz : ");
       Serial.println(notesMap[i]);
@@ -349,7 +364,7 @@ void loop()
     char key = e.bit.KEY;
     Serial.print((char)e.bit.KEY);
     if(e.bit.EVENT == KEY_JUST_PRESSED) Serial.println(" pressed");
-    else if(e.bit.EVENT == KEY_JUST_RELEASED) Serial.println(" released");
+    //else if(e.bit.EVENT == KEY_JUST_RELEASED) Serial.println(" released");
     switch (key)
     {
     case '1':
@@ -537,4 +552,16 @@ int Selector()
   lastValRotary = valRotary;
   //Serial.println();
   return selectorChange;
+}
+
+void Ring()
+{
+  ringerDelayTick++;
+
+  if(ringerDelayTick > ringerDelayMax)
+  {
+    ringerDelayTick = 0;
+    isRingerOn = !isRingerOn;
+    digitalWrite(6, isRingerOn);
+  }
 }
