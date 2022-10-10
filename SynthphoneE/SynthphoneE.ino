@@ -1,8 +1,16 @@
 /// Synthphone-E by Enoch and Nathan Bradshaw
-///
-///
-///
-///(if you are going to make spaghetti, at least leave a recipe)
+//- if you are going to make spaghetti, at least leave a recipe
+//   ______________________________________________________________________________________________________
+//  [                                                                                                      ]\
+//  [   SSSS                 TT   HH            HH                                   EEEEEE   TTT  M M     ] }
+//  [   SS    YY  YY NNNNN  TTTTT  HHHHH  PPPPP  HHHHH    OOOOO  NNNNN   EEEE        EE        T  M M M    ] }
+//  [    SSSS YYYYY  NN  NN   TT   HH  HH PP  PP HH  HH  OO   OO NN  NN EEEEEE  ---  EEEEEE                ] }
+//  [       SS YYYY  NN  NN   TT   HH  HH PP  PP HH  HH  OO   OO NN  NN EE           EE                    ] }   
+//  [    SSS    YY   NN  NN    TT  HH  HH PPPPP  HH  HH    OOO   NN  NN  EEEE        EEEEEE                ] }
+//  [          YY                         PP                                                               ] }
+//   \-----------------------------------------------------------------------------------------------------\ }
+//    \______________________________________________________________________________________________________\
+
 
 
 #include "Adafruit_Keypad.h"
@@ -180,7 +188,7 @@ void loop()
   */
   int newMenuValue;
   //if we have a change in the selector make the change
-  //selector = -1,0, or 1
+  //selector = -1, 0, or 1
   if(selectorStatus != 0)
   {
 
