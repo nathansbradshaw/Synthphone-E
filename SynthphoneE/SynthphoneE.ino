@@ -1,4 +1,4 @@
- /// Synthphone-E by Enoch and Nathan Bradshaw
+/// Synthphone-E by Enoch and Nathan Bradshaw
 ///
 ///
 ///
@@ -18,7 +18,8 @@ void PlayTone(int);
 void StopTone();
 int Selector();
 void Ring();
-void DrawSynthValues(char *, char *, char *, int, int);
+void DoEncoder();
+void DrawSynthValues(String, String, String, int, int);
 
 const byte ROWS = 4; // rows
 const byte COLS = 3; // columns
@@ -72,9 +73,9 @@ bool isRingerOn = false;
 enum instrumentMode
 {
   PLAY,
-  KEY,
-  MODE,
-  OCTAVE
+  KEY = 9,
+  MODE = 10,
+  OCTAVE = 11
 };
 instrumentMode mode = PLAY;
 
@@ -133,7 +134,7 @@ void setup()
   pinMode(encoderPinB, INPUT_PULLUP);
   pinMode(encoderBtn, INPUT_PULLUP);
   pinMode(RINGER, OUTPUT);
-  attachInterrupt(0, doEncoder, CHANGE);
+  attachInterrupt(0, DoEncoder, CHANGE);
 
   customKeypad.begin();
 }
@@ -329,156 +330,34 @@ void loop()
   {
     keypadEvent e = customKeypad.read();
     char key = e.bit.KEY;
-    Serial.print((char)e.bit.KEY);
-    if(e.bit.EVENT == KEY_JUST_PRESSED) Serial.println(" pressed");
-    //else if(e.bit.EVENT == KEY_JUST_RELEASED) Serial.println(" released");
-    switch (key)
+
+    int notePressedIndex = ((3 * e.bit.ROW )+ e.bit.COL);
+    //handle the event
+    if (e.bit.EVENT == KEY_JUST_PRESSED)
     {
-    case '1':
-      if (e.bit.EVENT == KEY_JUST_PRESSED)
-      {
 
-        PlayTone(notesMap[0]);
-        DrawSynthValues(noteDisplayMap[0], NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      else if (e.bit.EVENT == KEY_JUST_RELEASED)
+      if(notePressedIndex < 9)
       {
-        StopTone();
-        //display.invertDisplay(false);
+        //handle note playing and drawing
+        PlayTone(notesMap[notePressedIndex]);
+        DrawSynthValues(noteDisplayMap[notePressedIndex], NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
+
       }
-      break;
-    case '2':
-      if (e.bit.EVENT == KEY_JUST_PRESSED)
+      else
       {
-        PlayTone(notesMap[1]);
-        DrawSynthValues(noteDisplayMap[1], NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
+        //handle mode switch event
+        //9 = KEY, 10 = MODE, 11 = OCTAVE
+        mode = instrumentMode(notePressedIndex);
       }
-      else if (e.bit.EVENT == KEY_JUST_RELEASED)
-      {
-        StopTone();
-        // DrawSynthValues(' ', NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      break;
-    case '3':
-      if (e.bit.EVENT == KEY_JUST_PRESSED)
-      {
-        PlayTone(notesMap[2]);
-        DrawSynthValues(noteDisplayMap[2], NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      else if (e.bit.EVENT == KEY_JUST_RELEASED)
-      {
-        StopTone();
-        // DrawSynthValues(' ', NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      break;
-    case '4':
-      if (e.bit.EVENT == KEY_JUST_PRESSED)
-      {
-        PlayTone(notesMap[3]);
-        DrawSynthValues(noteDisplayMap[3], NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      else if (e.bit.EVENT == KEY_JUST_RELEASED)
-      {
-        StopTone();
-        // DrawSynthValues(' ', NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      break;
-    case '5':
-      if (e.bit.EVENT == KEY_JUST_PRESSED)
-      {
-        PlayTone(notesMap[4]);
-        DrawSynthValues(noteDisplayMap[4], NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      else if (e.bit.EVENT == KEY_JUST_RELEASED)
-      {
-        StopTone();
-        // DrawSynthValues(' ', NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      break;
-    case '6':
-      if (e.bit.EVENT == KEY_JUST_PRESSED)
-      {
-        PlayTone(notesMap[5]);
-        DrawSynthValues(noteDisplayMap[5], NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      else if (e.bit.EVENT == KEY_JUST_RELEASED)
-      {
-        StopTone();
-        // DrawSynthValues(' ', NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      break;
-    case '7':
-      if (e.bit.EVENT == KEY_JUST_PRESSED)
-      {
-        PlayTone(notesMap[6]);
-        DrawSynthValues(noteDisplayMap[6], NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      else if (e.bit.EVENT == KEY_JUST_RELEASED)
-      {
-        StopTone();
-        // DrawSynthValues(' ', NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      break;
-    case '8':
-      if (e.bit.EVENT == KEY_JUST_PRESSED)
-      {
-        PlayTone(notesMap[7]);
-        DrawSynthValues(noteDisplayMap[7], NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      else if (e.bit.EVENT == KEY_JUST_RELEASED)
-      {
-        StopTone();
-        // DrawSynthValues(' ', NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      break;
-    case '9':
-      if (e.bit.EVENT == KEY_JUST_PRESSED)
-      {
-        PlayTone(notesMap[8]);
-        DrawSynthValues(noteDisplayMap[8], NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      else if (e.bit.EVENT == KEY_JUST_RELEASED)
-      {
-        StopTone();
-        // DrawSynthValues(' ', NOTE_NAMES[keyIndex], MODE_NAMES[modeIndex], octave, volume);
-      }
-      break;
-    case '*':
-      if (e.bit.EVENT == KEY_JUST_PRESSED)
-      {
-        mode = KEY;
-      }
-      else if (e.bit.EVENT == KEY_JUST_RELEASED)
-      {
-        mode = PLAY;
-      }
-      break;
-    case '0':
-      if (e.bit.EVENT == KEY_JUST_PRESSED)
-      {
-        mode = MODE;
-      }
-      else if (e.bit.EVENT == KEY_JUST_RELEASED)
-      {
-        mode = PLAY;
-      }
-      break;
-    case '#':
-      if (e.bit.EVENT == KEY_JUST_PRESSED)
-      {
-        mode = OCTAVE;
-      }
-      else if (e.bit.EVENT == KEY_JUST_RELEASED)
-      {
-        mode = PLAY;
-      }
-      break;
-    default:
-      break;
     }
-  }
-
+    else if (e.bit.EVENT == KEY_JUST_RELEASED)
+    {
+      StopTone();
+      mode = PLAY;
+    }
+  //TODO: research if this delay is necesary
   delay(10);
+  }
 }
 
 void PlayTone(int note1, int note2)
@@ -501,7 +380,7 @@ void StopTone()
   tone2.stop();
 }
 
-void doEncoder()
+void DoEncoder()
 {
   if (digitalRead(encoderPinA) == digitalRead(encoderPinB))
   {
@@ -547,48 +426,48 @@ void Ring()
   }
 }
 
-void DrawSynthValues(const char *display_note,const char *display_key,const char *display_mode, int display_octave, int display_volume)
+void DrawSynthValues(const char *display_note, const char *display_key, const char *display_mode, int display_octave, int display_volume)
 {
-  display.clearDisplay();
-  //draw the blank background
-  display.drawBitmap(0, 0, TILESHEETS_H::epd_bitmap_SynthphoneE_MenuBlank, 128, 32, 1);
-  display.display();
+ display.clearDisplay();
+ //draw the blank background
+ display.drawBitmap(0, 0, TILESHEETS_H::epd_bitmap_SynthphoneE_MenuBlank, 128, 32, 1);
+ display.display();
 
-  display.setTextColor(BLACK);
-  display.setTextSize(1);
-  
-  //display the key
-  display.setCursor(20, 0);
-  display.print(display_key);
-
-  //display the mode
-  //right align the text based on length of the string (each character is 5 pixels wide)
-  display.setCursor(100-(strlen(display_mode) * 5), 0);
-  display.print(display_mode);
-
-  //display the octave
-  display.setCursor(16, 25);
-  display.print(display_octave);
-
-  //display the Volume
-  display.setCursor(114, 25);
-  display.print(display_volume);
+ display.setTextColor(BLACK);
+ display.setTextSize(1);
  
+ //display the key
+ display.setCursor(20, 0);
+ display.print(display_key);
 
-  //display the Note
-  if( strlen( display_note ) < 2)
-  {
-    display.setCursor(58, 10);
-  }else{
-    display.setCursor(50, 10);
-  }
-  display.setTextSize(2);
-  display.print(display_note);
+ //display the mode
+ //right align the text based on length of the string (each character is 5 pixels wide)
+ display.setCursor(100-(strlen(display_mode) * 5), 0);
+ display.print(display_mode);
 
-  display.setFont();  
-  display.display();
+ //display the octave
+ display.setCursor(16, 25);
+ display.print(display_octave);
 
-  
-  //https://learn.adafruit.com/adafruit-gfx-graphics-library/graphics-primitives
+ //display the Volume
+ display.setCursor(114, 25);
+ display.print(display_volume);
+
+
+ //display the Note
+ if( strlen( display_note ) < 2)
+ {
+   display.setCursor(58, 10);
+ }else{
+   display.setCursor(50, 10);
+ }
+ display.setTextSize(2);
+ display.print(display_note);
+
+ display.setFont();  
+ display.display();
+
+ 
+ //https://learn.adafruit.com/adafruit-gfx-graphics-library/graphics-primitives
 
 } 
