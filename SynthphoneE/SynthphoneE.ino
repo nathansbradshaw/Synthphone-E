@@ -14,7 +14,7 @@
 
 
 #include "Adafruit_Keypad.h"
-#include "Tone.h"
+#include <toneAC.h>
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -39,7 +39,7 @@ int valRotary = 0;
 int lastValRotary = 0;
 //int maxRotations = 12;
 
-#define AUDIOPIN A1
+//#define AUDIOPIN A1
 #define RINGER 6
 // define the symbols on the buttons of the keypads
 #define R1 4  // 1
@@ -103,8 +103,8 @@ char keys[ROWS][COLS] = {
 byte rowPins[ROWS] = {R1, R2, R3, R4}; // connect to the row pinouts of the keypad
 byte colPins[COLS] = {C1, C2, C3};     // connect to the column pinouts of the keypad
 
-Tone tone1;
-Tone tone2;
+//Volume vol1;
+//Volume vol2;
 
 // initialize an instance of class NewKeypad
 Adafruit_Keypad customKeypad = Adafruit_Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
@@ -135,8 +135,8 @@ void setup()
   //display.display();
   DrawSynthValues(noteDisplayMap[0], NOTE_NAMES[0], MODE_NAMES[0], 4, 10);
 
-  tone1.begin(AUDIOPIN);
-  tone2.begin(AUDIOPIN);
+  // vol1.begin(AUDIOPIN);
+  // vol2.begin(AUDIOPIN);
 
   pinMode(encoderPinA, INPUT_PULLUP);
   pinMode(encoderPinB, INPUT_PULLUP);
@@ -217,7 +217,7 @@ void loop()
       {
         newMenuValue = 11;
       }
-        Serial.println();
+      Serial.println();
       Serial.print("new KEY: ");
       Serial.print(NOTE_NAMES[newMenuValue]);
       Serial.print(" | ");
@@ -363,15 +363,9 @@ void loop()
       StopTone();
       mode = PLAY;
     }
-  //TODO: research if this delay is necesary
+  //TODO: research if this delay is necessary
   delay(10);
   }
-}
-
-void PlayTone(int note1, int note2)
-{
-  tone1.play(note1);
-  tone2.play(note2);
 }
 
 void PlayTone(double note1)
@@ -379,13 +373,12 @@ void PlayTone(double note1)
   Serial.println();
   Serial.print("Hertz : ");
   Serial.println(note1);
-  tone1.play(note1);
+  toneAC(note1, volume, 0, true); 
 }
 
 void StopTone()
 {
-  tone1.stop();
-  tone2.stop();
+  toneAC(false);
 }
 
 void DoEncoder()
