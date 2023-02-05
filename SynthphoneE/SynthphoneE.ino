@@ -45,19 +45,10 @@ int lastValRotary = 0;
 #define R1 4  // 1
 #define R2 5  // 2
 #define R3 11 // 7
-#define R4 10 // 6
+#define R4 A0 // 6
 #define C1 7  // 3
 #define C2 8  // 4
 #define C3 12 // 8
-
-//#define F 697
-//#define G 770
-//#define GS 852
-//#define AS 941
-//#define D 1209
-//#define E 1336
-//#define FS 1477
-
 
 double notes[12] = {261.6256, 277.1826, 293.6648, 311.1270, 329.6276, 349.2282, 369.9944, 391.9954, 415.3047, 440.0000, 466.1638, 493.8833};
 const char *NOTE_NAMES[12] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
@@ -85,6 +76,7 @@ enum instrumentMode
   MODE = 10,
   OCTAVE = 11
 };
+
 instrumentMode mode = PLAY;
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -363,7 +355,7 @@ void loop()
       StopTone();
       mode = PLAY;
     }
-  //TODO: research if this delay is necessary
+
   delay(10);
   }
 }
